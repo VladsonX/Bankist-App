@@ -66,7 +66,7 @@ const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
 // Event Handlers
-let currentAccount;
+let currentAccount, timer;
 btnLogin.addEventListener('click', e => {
   e.preventDefault();
   currentAccount = accounts.find(
@@ -75,6 +75,8 @@ btnLogin.addEventListener('click', e => {
 
   if (currentAccount?.pin === +inputLoginPin.value) {
     labelWelcome.textContent = `Welcome back, ${currentAccount.owner.split(' ').at(0)}`;
+    if (timer) clearInterval(timer);
+    timer = startLogOutTimer();
 
     const nowDate = new Date();
     const options = {
@@ -118,6 +120,10 @@ btnTransfer.addEventListener('click', e => {
   inputTransferTo.value = inputTransferAmount.value = '';
   inputTransferTo.blur();
   inputTransferAmount.blur();
+
+  // Trigger the timer
+  clearInterval(timer);
+  timer = startLogOutTimer();
 });
 
 btnClose.addEventListener('click', e => {
@@ -141,13 +147,18 @@ btnLoan.addEventListener('click', e => {
   if (
     loanAmount > 0 &&
     currentAccount.movements.some(mov => mov[0] >= loanAmount * 0.1)
-  ) {
-    const loan = [loanAmount, new Date().toISOString()];
-    currentAccount.movements.push(loan);
-    updateUI(currentAccount);
-  }
+  )
+    setTimeout(function () {
+      const loan = [loanAmount, new Date().toISOString()];
+      currentAccount.movements.push(loan);
+      updateUI(currentAccount);
+    }, 3000);
   inputLoanAmount.value = '';
   inputLoanAmount.blur();
+
+  // Trigger the timer
+  clearInterval(timer);
+  timer = startLogOutTimer();
 });
 
 btnSort.addEventListener('click', e => {
@@ -159,6 +170,26 @@ btnSort.addEventListener('click', e => {
   displayMovements(currentAccount, sortType);
 });
 // functions
+
+function startLogOutTimer() {
+  let timeToLogOut = 5 * 60;
+  const tick = function () {
+    const min = String(Math.floor(timeToLogOut / 60)).padStart(2, '0');
+    const sec = String(timeToLogOut % 60).padStart(2, '0');
+    labelTimer.textContent = `${min}:${sec}`;
+
+    if (timeToLogOut === 0) {
+      currentAccount = undefined;
+      labelWelcome.textContent = 'Log in to get started!';
+      containerApp.style.opacity = 0;
+      clearInterval(timer);
+    }
+    timeToLogOut--;
+  };
+  tick();
+  const timer = setInterval(tick, 1000);
+  return timer;
+}
 function calcDaysPassed(date1, date2) {
   return Math.floor(Math.abs(date1 - date2) / (1000 * 60 * 60 * 24));
 }
