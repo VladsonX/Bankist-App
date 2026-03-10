@@ -1,12 +1,6 @@
 'use strict';
 
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-// BANKIST APP
-
-/////////////////////////////////////////////////
 // Data
-
 const account1 = {
   owner: 'Jonas Schmedtmann',
   movements: [
@@ -78,10 +72,8 @@ btnLogin.addEventListener('click', e => {
   currentAccount = accounts.find(
     acc => acc.username === inputLoginUsername.value,
   );
-  console.log(currentAccount);
 
   if (currentAccount?.pin === +inputLoginPin.value) {
-    // display UI and welcome message
     labelWelcome.textContent = `Welcome back, ${currentAccount.owner.split(' ').at(0)}`;
 
     const nowDate = new Date();
@@ -121,7 +113,6 @@ btnTransfer.addEventListener('click', e => {
 
     const withdrawal = [-amount, new Date().toISOString()];
     currentAccount.movements.push(withdrawal);
-    console.log('Transfer valid');
     updateUI(currentAccount);
   }
   inputTransferTo.value = inputTransferAmount.value = '';
@@ -164,7 +155,6 @@ btnSort.addEventListener('click', e => {
   if (!sortType) sortType = 'ascending';
   else if (sortType === 'ascending') sortType = 'descending';
   else sortType = undefined;
-  console.log(sortType);
 
   displayMovements(currentAccount, sortType);
 });
@@ -178,8 +168,8 @@ function updateUI(account) {
   calcDisplaySummary(account);
 }
 
-function createDateMovementsDescr(date) {
-  const daysPassed = calcDaysPassed(new Date(), date.now);
+function createDateMovementsDescr(date, locale) {
+  const daysPassed = calcDaysPassed(new Date(), date);
   switch (true) {
     case daysPassed === 0:
       return 'today';
@@ -188,20 +178,10 @@ function createDateMovementsDescr(date) {
     case daysPassed <= 7:
       return `${daysPassed} days ago`;
     default:
-      return `${date.day}/${date.month}/${date.year}`;
+      return new Intl.DateTimeFormat(locale).format(date);
   }
 }
 
-function createDateNow(date = new Date().toISOString()) {
-  const objDate = {};
-  objDate.now = new Date(date);
-  objDate.day = String(objDate.now.getDate()).padStart(2, 0);
-  objDate.month = String(objDate.now.getMonth() + 1).padStart(2, 0);
-  objDate.year = objDate.now.getFullYear();
-  objDate.hour = String(objDate.now.getHours()).padStart(2, 0);
-  objDate.min = String(objDate.now.getMinutes()).padStart(2, 0);
-  return objDate;
-}
 function displayMovements(account, sort) {
   containerMovements.innerHTML = '';
   const movs =
@@ -212,16 +192,21 @@ function displayMovements(account, sort) {
         : account.movements;
 
   movs.forEach(([movement, movDate], index) => {
-    const date = createDateNow(movDate);
-    const dateString = createDateMovementsDescr(date);
-    console.log(dateString);
-
+    const formattedMovement = formatCurrencies(
+      movement,
+      account.locale,
+      account.currency,
+    );
+    const dateString = createDateMovementsDescr(
+      new Date(movDate),
+      account1.locale,
+    );
     const type = movement < 0 ? 'withdrawal' : 'deposit';
     const html = `
     <div class="movements__row">
       <div class="movements__type movements__type--${type}">${index + 1} ${type}</div>
       <div class="movements__date">${dateString}</div>
-      <div class="movements__value">${movement.toFixed(2)}€</div>
+      <div class="movements__value">${formattedMovement}</div>
     </div>`;
     containerMovements.insertAdjacentHTML('afterbegin', html);
   });
@@ -240,10 +225,20 @@ function createUserNameForAllUsers(users) {
 
 function calcDisplayBalance(account) {
   const balance = account.movements.reduce((acc, mov) => acc + mov[0], 0);
-  console.log(balance);
 
-  account.balance = balance.toFixed(2);
-  labelBalance.textContent = account.balance + '€';
+  account.balance = balance;
+  labelBalance.textContent = formatCurrencies(
+    account.balance,
+    account.locale,
+    account.currency,
+  );
+}
+
+function formatCurrencies(value, locale, currency) {
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currency,
+  }).format(value);
 }
 
 function calcDisplaySummary(account) {
@@ -251,21 +246,27 @@ function calcDisplaySummary(account) {
     .filter(deposit)
     .reduce((sum, mov) => sum + mov[0], 0)
     .toFixed(2);
-  labelSumIn.textContent = `${depositsSum}€`;
+  labelSumIn.textContent = formatCurrencies(
+    depositsSum,
+    account.locale,
+    account.currency,
+  );
 
   const withdrawalsSum = account.movements
     .filter(withdrawal)
-    .reduce((sum, mov) => sum + mov[0], 0)
-    .toFixed(2);
-  labelSumOut.textContent = `${Math.abs(withdrawalsSum)}€`;
+    .reduce((sum, mov) => sum + mov[0], 0);
+  labelSumOut.textContent = formatCurrencies(
+    withdrawalsSum,
+    account.locale,
+    account.currency,
+  );
 
   const interest = account.movements
     .filter(deposit)
     .map(mov => (mov * account.interestRate) / 100)
     .filter(interest => interest >= 1)
-    .reduce((acc, mov) => acc + mov, 0)
-    .toFixed(2);
-  labelSumInterest.textContent = `${interest}€`;
+    .reduce((acc, mov) => acc + mov, 0);
+  formatCurrencies(interest, account.locale, account.currency);
 }
 
 function deposit(movement) {
@@ -277,36 +278,7 @@ function withdrawal(movement) {
 }
 
 // variables
-const eurToUsd = 1.1;
-const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
-
 let sortType;
-
-const deposits = movements.filter(mov => mov > 0);
-const withdrawals = movements.filter(mov => mov < 0);
-const balance = movements.reduce((acc, mov) => acc + mov, 0);
 
 // main
 createUserNameForAllUsers(accounts);
-
-// FAKE LOGIN
-currentAccount = account1;
-updateUI(account1);
-containerApp.style.opacity = 100;
-
-const numThousandDeposits = accounts
-  .flatMap(acc => acc.movements)
-  .filter(mov => mov >= 1000).length;
-console.log(numThousandDeposits);
-
-const convertTitleCase = function (string) {
-  const words = string.split(' ');
-  console.log(words);
-
-  return words.reduce((result, word) => {
-    result = `${result} ${word.length <= 2 ? word : word.replace(word[0], word[0].toUpperCase())}`;
-    return result;
-  }, '');
-};
-
-console.log(convertTitleCase('hello my name is aboba'));
