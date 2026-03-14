@@ -13,10 +13,10 @@ const account1 = {
     [79.97, '2020-07-11T23:36:17.929Z'],
     [1300, '2020-07-12T10:51:36.790Z'],
   ],
-  interestRate: 1.2, // %
+  interestRate: 1.2,
   pin: 1111,
   currency: 'EUR',
-  locale: 'pt-PT', // de-DE
+  locale: 'pt-PT',
 };
 
 const account2 = {
@@ -37,7 +37,25 @@ const account2 = {
   locale: 'en-US',
 };
 
-const accounts = [account1, account2];
+const account3 = {
+  owner: 'Uladzislau Navitski',
+  movements: [
+    [3000, '2016-03-01T13:15:33.035Z'],
+    [-100, '2026-03-02T09:48:16.867Z'],
+    [1340, '2026-03-14T06:04:23.907Z'],
+    [-70, '2026-03-15T14:18:46.235Z'],
+    [-30, '2026-02-22T16:33:06.386Z'],
+    [1250, '2026-02-23T14:43:26.374Z'],
+    [45, '2026-02-24T18:49:59.371Z'],
+    [-25, '2026-02-26T12:01:20.894Z'],
+  ],
+  interestRate: 1.1,
+  pin: 3333,
+  currency: 'PLN',
+  locale: 'pl-PL',
+};
+
+const accounts = [account1, account2, account3];
 
 // Elements
 const labelWelcome = document.querySelector('.welcome');
@@ -65,8 +83,9 @@ const inputLoanAmount = document.querySelector('.form__input--loan-amount');
 const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
+let currentAccount, timer, sortType;
+
 // Event Handlers
-let currentAccount, timer;
 btnLogin.addEventListener('click', e => {
   e.preventDefault();
   currentAccount = accounts.find(
@@ -230,7 +249,7 @@ function displayMovements(account, sort) {
     );
     const dateString = createDateMovementsDescr(
       new Date(movDate),
-      account1.locale,
+      account.locale,
     );
     const type = movement < 0 ? 'withdrawal' : 'deposit';
     const html = `
@@ -294,10 +313,14 @@ function calcDisplaySummary(account) {
 
   const interest = account.movements
     .filter(deposit)
-    .map(mov => (mov * account.interestRate) / 100)
+    .map(mov => (mov[0] * account.interestRate) / 100)
     .filter(interest => interest >= 1)
     .reduce((acc, mov) => acc + mov, 0);
-  formatCurrencies(interest, account.locale, account.currency);
+  labelSumInterest.textContent = formatCurrencies(
+    interest,
+    account.locale,
+    account.currency,
+  );
 }
 
 function deposit(movement) {
@@ -307,9 +330,6 @@ function deposit(movement) {
 function withdrawal(movement) {
   return movement[0] < 0;
 }
-
-// variables
-let sortType;
 
 // main
 createUserNameForAllUsers(accounts);
