@@ -8,7 +8,7 @@ A modern, vanilla JavaScript banking application focused on complex data transfo
 
 ![Bankist App Screenshot](Main.png)
 
-## 🔐 Demo Credentials
+## Demo Credentials
 
 To test the application, log in using any of the following demo accounts:
 
@@ -16,7 +16,7 @@ To test the application, log in using any of the following demo accounts:
 - **User:** `jd` | **PIN:** `2222` (Jessica Davis / USD)
 - **User:** `un` | **PIN:** `3333` (Uladzislau Navitski / PLN)
 
-## ✨ Custom Architecture & Improvements
+## Custom Architecture & Improvements
 
 While based on a standard concept, I heavily refactored the data structures and core logic to simulate a more realistic backend integration:
 
@@ -25,14 +25,14 @@ While based on a standard concept, I heavily refactored the data structures and 
 - **Declarative Callbacks:** Extracted callback functions (`deposit`, `withdrawal`) to make the chained array methods (`.filter(deposit).reduce(...)`) read like plain English.
 - **Internationalization (Intl API):** Fully localized dates, currencies, and number formats based on the specific user's locale settings.
 
-## ⚙️ Core Features
+## Core Features
 
 - **Money Transfers:** Securely send money to other users (validates balance and recipient).
 - **Smart Loans:** Request a loan (approved only if the user has at least one previous deposit covering 10% of the requested amount).
 - **Account Deletion:** Close the account permanently using credentials validation.
 - **Security Timer:** Automatic UI lockout after 5 minutes of inactivity to protect user data.
 
-## 🛠 Tech Stack
+## Tech Stack
 
 - **HTML5 & CSS3** (Grid, Flexbox, Opacity transitions)
 - **Vanilla JavaScript** (ES6+, DOM API, HOFs, Intl API, Timers)

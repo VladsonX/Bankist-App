@@ -295,3 +295,13 @@ h2 {
 .timer {
   font-weight: 600;
 }
+
+.footer__copyright {
+  font-size: 1.4rem;
+  color: #aaa;
+  text-align: center;
+}
+
+.footer__copyright .footer__link {
+  font-size: 1.4rem;
+}
